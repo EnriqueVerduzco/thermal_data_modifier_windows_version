@@ -24,7 +24,7 @@ This module can be used by calling it as a script:
 
 ```bash
 python flir_image_extractor.py -act
-python flir_image_extractor.py -p -i "images/2019-08-28/Camera_1/img_20190828_121055_010.jpg" -s -csv
+python flir_image_extractor.py -p -i "images\2019-08-28\Camera_1\img_20190828_121055_010.jpg" -s -csv
 ```
 
 ```bash
@@ -78,7 +78,7 @@ This module can be used by calling it as a script:
 
 ```bash
 python thermal_data_modifier.py -act
-python thermal_data_modifier.py -dir "images/2019-08-28/Camera_1/img_20190828_121055_010/"
+python thermal_data_modifier.py -dir "images\2019-08-28\Camera_1\img_20190828_121055_010\"
 ```
 
 ```bash
