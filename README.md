@@ -9,41 +9,39 @@ This small Python tool/library allows to extract the original photo and thermal 
 
 ## Requirements
 
-This tool relies on `exiftool`. It should be available in most Linux distributions (e.g. as `perl-image-exiftool` in Arch Linux or `libimage-exiftool-perl` in Debian and Ubuntu).
-
-It also needs the Python packages *numpy* and *matplotlib* (the latter only if used interactively).
+Anaconda for python 2.7 32-bit  
+Exiftool (since no available anaconda packages, the executable is included in the files)  
 
 ```bash
-# sudo apt update
-# sudo apt install exiftool
-# sudo pip install numpy matplotlib
+# conda install -c menpo opencv
+# conda install -c omnia subprocess32
+# conda install xlrd
 ```
 
 ## Usage
 
-This module can be used by importing it:
-
-```python
-import flir_image_extractor
-fir = flir_image_extractor.FlirImageExtractor()
-fir.process_image('examples/ax8.jpg')
-fir.plot()
-```
-
-Or by calling it as a script:
+This module can be used by calling it as a script:
 
 ```bash
-python flir_image_extractor.py -p -i 'examples/zenmuse_xtr.jpg'
+python flir_image_extractor.py -act
+python flir_image_extractor.py -p -i "images/2019-08-28/Camera_1/img_20190828_121055_010.jpg" -s -csv
 ```
 
 ```bash
-usage: flir_image_extractor.py [-h] -i INPUT [-p] [-exif EXIFTOOL]
-                               [-csv EXTRACTCSV] [-d]
+usage: flir_image_extractor.py [-h] [-act] [-i INPUT] [-p] [-exif EXIFTOOL]
+                               [-csv] [-s] [-d]
 
 Extract and visualize Flir Image data
 
-optional arguments:
+arguments:
   -h, --help            show this help message and exit
+  -act, --actions       Perform all available actions apart from plot for all images.
+			Includes the generation of 4 images anda csv file.
+			1. Original thermal image (60x80)
+			2. Original RGB image (640x480)
+			3. Downscaled RGB image (60x80)
+			4. Cropped RGB image (494x335)
+			5. Thermal data csv file of temperatures and RGB values.
   -i INPUT, --input INPUT
                         Input image. Ex. img.jpg
   -p, --plot            Generate a plot using matplotlib
@@ -51,23 +49,46 @@ optional arguments:
                         Custom path to exiftool
   -csv EXTRACTCSV, --extractcsv EXTRACTCSV
                         Export the thermal data per pixel encoded as csv file
+  -s, --scale		Generate a downscaled rgb image to match the thermal image's dimensions
   -d, --debug           Set the debug flag
 ```
 
-This command will show an interactive plot of the thermal image using matplotlib and create two image files *flir_example_thermal.png* and *flir_example_rgb_image.jpg*. 
-Both are RGB images, the original temperature array is available using the `get_thermal_np` or `export_thermal_to_csv` functions.
-
-The functions `get_rgb_np` and `get_thermal_np` yield numpy arrays and can be called from your own script after importing this lib.
+If the user wants to bypass some of the attached metadata, a weather_data.xlsx file has to be added to the images folder.
+If info for the image is not present inside the weather_data.xlsx file, the original image metadata will be used for the computations.
 
 ## Supported/Tested cameras:
 
-- Flir One (thermal + RGB)
-- Xenmuse XTR (thermal + thumbnail, set the subject distance to 1 meter)
 - AX8 (thermal + RGB)
-
-Other cameras might need some small tweaks (the embedded raw data can be in multiple image formats)
 
 ## Credits
 
 Raw value to temperature conversion is ported from this R package: https://github.com/gtatters/Thermimage/blob/master/R/raw2temp.R
 Original Python code from: https://github.com/Nervengift/read_thermal.py
+
+# Thermal Data Modifier
+
+This module combines the mask.txt and *_thermal_values.csv files to further enrich the latter.
+To be specific, it maps the content of the mask.txt file to the corresponding pixels of the csv file.
+The result is 1 extra column indicating if the given pixel is 'Leaf' or 'Noise'
+It also provides an output.csv file with useful metrics regarding the given image
+
+To generate the mask.txt file, open the cropped image in the pynovisao software, run a segmentor and click on the areas of interest.
+
+This module can be used by calling it as a script:
+
+```bash
+python thermal_data_modifier.py -act
+python thermal_data_modifier.py -dir "images/2019-08-28/Camera_1/img_20190828_121055_010/"
+```
+
+```bash
+usage: flir_image_extractor.py [-h] [-act] [-dir DIRECTORY] [-d]
+
+arguments:
+  -h, --help            show this help message and exit
+  -dir DIRECTORY, --directory DIRECTORY
+			Path to directory. Ex: images/2019-07-01/Camera_1/img_20190701_121055_011/
+  -act, --actions       Performs the action for all images inside folders where both
+			a mask.txt and a *_thermal_values.csv exist
+  -d, --debug           Set the debug flag
+```
