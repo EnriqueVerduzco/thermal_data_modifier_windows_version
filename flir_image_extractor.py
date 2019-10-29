@@ -470,10 +470,10 @@ if __name__ == '__main__':
         print("DEBUG Your system's Python version: "+str(sys.version_info[0])+"."+str(sys.version_info[1]))
 
     fie = FlirImageExtractor(exiftool_path=args.exiftool, is_debug=args.debug)
+    fie.parse_weather_data()
     
     if args.actions:
         image_path_list = glob.glob("images/*-*-*/Camera_*/*.jpg")
-        fie.parse_weather_data()
         
         for image_path in image_path_list:
             fie.check_if_metadata_present(image_path)
@@ -489,6 +489,7 @@ if __name__ == '__main__':
         print("Total number of images with metadata present in the xlsx : ",fie.is_debug_number_of_images_with_metadata)
         
     else:
+        fie.check_if_metadata_present(args.input)
         fie.process_image(args.input)
         fie.create_subfolder()
         if args.plot:

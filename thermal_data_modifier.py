@@ -17,9 +17,6 @@ class ThermalDataModifier:
         self.directory = directory
         self.unmodified_data_suffix = '_thermal_values.csv'
 
-        self.rgb_image_np = None
-        self.thermal_image_np = None
-
     def process_thermal_data(self):
         """
         Maps the extracted mask to the thermal data
