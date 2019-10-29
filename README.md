@@ -78,7 +78,7 @@ This module can be used by calling it as a script:
 
 ```bash
 python thermal_data_modifier.py -act
-python thermal_data_modifier.py -dir "images\2019-08-28\Camera_1\img_20190828_121055_010/"
+python thermal_data_modifier.py -dir "images\2019-08-28\Camera_1\img_20190828_121055_010"
 ```
 
 ```bash
@@ -87,7 +87,7 @@ usage: flir_image_extractor.py [-h] [-act] [-dir DIRECTORY] [-d]
 arguments:
   -h, --help            show this help message and exit
   -dir DIRECTORY, --directory DIRECTORY
-			Path to directory. Ex: images/2019-07-01/Camera_1/img_20190701_121055_011/
+			Path to directory. Ex: images/2019-07-01/Camera_1/img_20190701_121055_011
   -act, --actions       Performs the action for all images inside folders where both
 			a mask.txt and a *_thermal_values.csv exist
   -d, --debug           Set the debug flag
@@ -104,7 +104,7 @@ This module can be used by calling it as a script:
 
 ```bash
 python thermal_data_modifier.py -val [int] [int] -act
-python thermal_data_modifier.py -val [int] [int] -dir "images\2019-08-28\Camera_1\img_20190828_121055_010/"
+python thermal_data_modifier.py -val [int] [int] -dir "images\2019-08-28\Camera_1\img_20190828_121055_010"
 ```
 
 ```bash
@@ -113,7 +113,7 @@ usage: flir_image_extractor.py [-h] [-act] [-dir DIRECTORY] -val VALUES VALUES [
 arguments:
   -h, --help            show this help message and exit
   -dir DIRECTORY, --directory DIRECTORY
-			Path to directory. Ex: images/2019-07-01/Camera_1/img_20190701_121055_011/
+			Path to directory. Ex: images/2019-07-01/Camera_1/img_20190701_121055_011
   -act, --actions       Performs the action for all images inside folders where both
 			a mask.txt and a *_thermal_values.csv exist
   -val VALUES VALUES, --values VALUES VALUES
