@@ -65,7 +65,7 @@ If info for the image is not present inside the weather_data.xlsx file, the orig
 Raw value to temperature conversion is ported from this R package: https://github.com/gtatters/Thermimage/blob/master/R/raw2temp.R
 Original Python code from: https://github.com/Nervengift/read_thermal.py
 
-# Thermal Data Modifier
+# thermal_data_modifier.py
 
 This module combines the mask.txt and *_thermal_values.csv files to further enrich the latter.
 To be specific, it maps the content of the mask.txt file to the corresponding pixels of the csv file.
@@ -90,5 +90,33 @@ arguments:
 			Path to directory. Ex: images/2019-07-01/Camera_1/img_20190701_121055_011/
   -act, --actions       Performs the action for all images inside folders where both
 			a mask.txt and a *_thermal_values.csv exist
+  -d, --debug           Set the debug flag
+```
+
+# canopy_empirical.py
+
+This module looks for a *_thermal_values.csv file and a weather_data.xlsx file.
+1. Searches the weather_data.xlsx file to deduce the atmospheric temperature corresponding to the image.
+2. Using the formula Tair - value1 < canopy < Tair + value2 determines which pixel values describe canopy.
+3. Produces the canopy_empirical.csv file that contains a canopy_empirical column.
+
+This module can be used by calling it as a script:
+
+```bash
+python thermal_data_modifier.py -val [int] [int] -act
+python thermal_data_modifier.py -val [int] [int] -dir "images\2019-08-28\Camera_1\img_20190828_121055_010/"
+```
+
+```bash
+usage: flir_image_extractor.py [-h] [-act] [-dir DIRECTORY] -val VALUES VALUES [-d]
+
+arguments:
+  -h, --help            show this help message and exit
+  -dir DIRECTORY, --directory DIRECTORY
+			Path to directory. Ex: images/2019-07-01/Camera_1/img_20190701_121055_011/
+  -act, --actions       Performs the action for all images inside folders where both
+			a mask.txt and a *_thermal_values.csv exist
+  -val VALUES VALUES, --values VALUES VALUES
+                        Number to subtract from Tair and number to add to Tair
   -d, --debug           Set the debug flag
 ```
