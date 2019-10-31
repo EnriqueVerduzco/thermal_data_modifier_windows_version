@@ -97,8 +97,8 @@ arguments:
 
 This module looks for a *_thermal_values.csv file and a weather_data.xlsx file.
 1. Searches the weather_data.xlsx file to deduce the atmospheric temperature corresponding to the image.
-2. Using the formula Tair - value1 < canopy < Tair + value2 determines which pixel values describe canopy.
-3. Produces the canopy_empirical.csv file that contains a canopy_empirical column.
+2. Using the formula Tair - value1 < canopy < Tair + value2 it excludes some temperatures.
+3. Produces the canopy_empirical.csv file that contains data for the histogram needed to determine canopy.
 
 This module can be used by calling it as a script:
 
