@@ -72,7 +72,7 @@ class ThermalDataModifier:
 
         thresh_low = self.at - self.sub
         thresh_high = self.at + self.add
-        print("Threshold low: %.2f, Threshold high %.2f" % (thresh_low, thresh_high))
+        # print("Threshold low: %.2f, Threshold high %.2f" % (thresh_low, thresh_high))
 
         data = pd.read_csv(loaded_csv_files[0], sep=',', parse_dates=False)
         data['Temp_rounded(c)'] = data['Temp(c)'].map(lambda tempc: round(tempc))
