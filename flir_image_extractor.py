@@ -318,8 +318,9 @@ class FlirImageExtractor:
         # Combination of consecutive sublists [x,y,temp,R,G,B] -> format needed for csv writer
         x = iter(flat_list)
         formatted_flat_list = [a+b for a, b in izip_longest(x, x, fillvalue=[])]
-        
-        with open(path, 'w') as fh:
+
+        # wb instead of w cause python 2 on windows adds blank lines.
+        with open(path, 'wb') as fh:
             writer = csv.writer(fh, delimiter=',')
             writer.writerow(['x', 'y', 'Temp(c)', 'R', 'G', 'B'])
             writer.writerows(formatted_flat_list)
@@ -434,7 +435,6 @@ class FlirImageExtractor:
             print("Weather data not found for: ", file_name)
 
 class SmartFormatter(argparse.HelpFormatter):
-
 
 
     def _split_lines(self, text, width):

@@ -29,10 +29,13 @@ class ThermalDataModifier:
             else:
                 print("DEBUG Error! Provided directory does not exist!")
 
-        if os.path.exists(os.path.join(self.directory + 'mask.txt')):
-            mask = np.loadtxt(os.path.join(self.directory + 'mask.txt'))
+
+        path_to_mask = os.path.join(self.directory + '\\' + 'mask.txt')
+        
+        if os.path.exists(path_to_mask):
+            mask = np.loadtxt(path_to_mask)
             new_mask = cv.resize(mask, dsize=(80, 60), interpolation=cv.INTER_CUBIC)
-            np.savetxt(os.path.join(self.directory + 'mask_60x80.txt'),new_mask, fmt='%d')
+            np.savetxt(os.path.join(self.directory + '\\' + 'mask_60x80.txt'),new_mask, fmt='%d')
             it = np.nditer(new_mask, flags=['multi_index'])
             if self.is_debug:
                 print('DEBUG Mask successfully loaded!')
@@ -42,7 +45,10 @@ class ThermalDataModifier:
             return
 
         unmodified_data_suffix = '_thermal_values.csv'
-        loaded_csv_files = glob.glob(self.directory + '*{}'.format(unmodified_data_suffix))
+        path_to_csv = self.directory + '\\' + '*{}'.format(unmodified_data_suffix)
+
+        # List of csv files with givn suffix inside the folder
+        loaded_csv_files = glob.glob(path_to_csv)
 
         if loaded_csv_files.__len__() > 1:
             print('Multiple themal values csv files found inside the folder: ' + self.directory)
