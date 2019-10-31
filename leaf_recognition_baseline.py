@@ -13,11 +13,8 @@ from PIL import Image
 from math import sqrt, exp, log
 from matplotlib import cm
 from matplotlib import pyplot as plt
-from itertools import izip_longest
-
 import numpy as np
-import cv2 as cv
-import pandas as pd
+# from pysal.weights.Distance import DistanceBand
 
 
 class LeafRecognitionBaseline:
@@ -70,16 +67,16 @@ class LeafRecognitionBaseline:
                     vegetation_index[i][j] = 1
                 else:
                     vegetation_index[i][j] = (G-R)/(G+B)
-                            
+
         result = self.rgb_image_np.copy()
         result[vegetation_index == 1] = (0, 0, 0)
 
-        plt.subplot(1, 2, 1)
-        plt.imshow(vegetation_index, cmap=plt.cm.binary, vmin=0, vmax=1)
-        plt.subplot(1, 2, 2)
-        plt.imshow(result)
-        plt.show()
-     
+        # plt.subplot(1, 2, 1)
+        # plt.imshow(vegetation_index, cmap=plt.cm.binary, vmin=0, vmax=1)
+        # plt.subplot(1, 2, 2)
+        # plt.imshow(result)
+        # plt.show()
+
     def get_image_np(self, image_path):
 
         visual_img = Image.open(image_path)

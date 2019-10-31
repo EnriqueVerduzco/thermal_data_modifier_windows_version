@@ -52,27 +52,44 @@ class ThermalDataModifier:
             print("DEBUG Using csv file: " + loaded_csv_files[0])
 
         # Create another csv containing canopy label
-        with open(loaded_csv_files[0], 'r') as csvInput:
-            reader = csv.reader(csvInput)
+        # with open(loaded_csv_files[0], 'r') as csvInput:
+        #     reader = csv.reader(csvInput)
 
-            all = []
-            row = next(reader)
-            row.append('Canopy_empirical')
-            all.append(row)
+        #     all = []
+        #     row = next(reader)
+        #     row.append('Canopy_empirical')
+        #     all.append(row)
 
-            thresh_low = self.at - self.sub
-            thresh_high = self.at + self.add
+        #     thresh_low = self.at - self.sub
+        #     thresh_high = self.at + self.add
 
-            for row in reader:
-                if row[2] > thresh_low and row[2] < thresh_high:
-                    row.append('Yes')
-                else:
-                    row.append('No')
-                all.append(row)
+        #     for row in reader:
+        #         if row[2] > thresh_low and row[2] < thresh_high:
+        #             row.append('Yes')
+        #         else:
+        #             row.append('No')
+        #         all.append(row)
 
-            with open(os.path.join(directory, 'canopy_empirical.csv'), 'w') as csvOutput:
-                writer = csv.writer(csvOutput, lineterminator='\n')
-                writer.writerows(all)
+        thresh_low = self.at - self.sub
+        thresh_high = self.at + self.add
+        print("Threshold low: %.2f, Threshold high %.2f" % (thresh_low, thresh_high))
+
+        data = pd.read_csv(loaded_csv_files[0], sep=',', parse_dates=False)
+        data['Temp_rounded(c)'] = data['Temp(c)'].map(lambda tempc: round(tempc))
+        filtered_df = data[(data['Temp(c)'] > thresh_low) & (data['Temp(c)']<thresh_high)]
+        observations = filtered_df['Temp_rounded(c)'].value_counts()
+        observations_percent = filtered_df['Temp_rounded(c)'].value_counts(normalize=True)
+        observations_percent = observations_percent.map(lambda temp: round(temp*100,2))
+        frame = {'Temp_rounded(c)': observations.index.astype('int64'), 'Observations': observations.values, 'Frequency(%)' : observations_percent.values }
+        temps_freq_df = pd.DataFrame(frame)
+        temps_freq_df = temps_freq_df[['Temp_rounded(c)','Observations','Frequency(%)']]
+        temps_freq_df.to_csv(os.path.join(directory, 'canopy_empirical.csv'), header=True, index=False)
+
+        
+        
+
+        
+
 
         if self.is_debug:
             print('DEBUG canopy.csv created')
@@ -110,7 +127,7 @@ class ThermalDataModifier:
         if self.metadata_in_file:
             pass
         else:
-            print("Weather data not found for: ", folder_name)
+            print("Atmospheric temerature not found for: ", folder_name)
             return
 
     def set_add_sub(self, list):
