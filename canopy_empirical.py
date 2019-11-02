@@ -61,6 +61,8 @@ class ThermalDataModifier:
 
         # Create a new column that has rounded temperatures
         data['Temp_rounded(c)'] = data['Temp(c)'].map(lambda tempc: round(tempc))
+        data['Tair(c)'] = data['Temp(c)'].map(lambda tempc: round(self.at))
+        data['diff(c)'] = data['Temp_rounded(c)'].subtract(round(self.at))
 
         # Filter out dataframe rows that contain temperatures that do not abide by the threshold
         filtered_df = data[(data['Temp(c)'] > thresh_low) & (data['Temp(c)']<thresh_high)]
@@ -69,6 +71,10 @@ class ThermalDataModifier:
         # Count the absolute number of occurrences for each rounded temperature
         observations = filtered_df['Temp_rounded(c)'].value_counts()
 
+        # New pandas series containing Tair
+        series = pd.Series()
+        series = observations.map(lambda m: round(self.at))
+
         # Calculate the relative frequency for each temperature
         observations_percent = filtered_df['Temp_rounded(c)'].value_counts(normalize=True)
 
@@ -76,14 +82,18 @@ class ThermalDataModifier:
         observations_percent = observations_percent.map(lambda temp: round(temp*100,2))
 
         # Create a new dictionary with 3 columns
-        frame = {'Temp_rounded(c)': observations.index.astype('int64'), 'Observations': observations.values, 'Frequency(%)' : observations_percent.values }
+        frame = {'Temp_rounded(c)': observations.index.astype('int64'), 'Observations': observations.values,
+                'Frequency(%)' : observations_percent.values, 'Tair(c)': series.values, 'diff(c)': np.subtract(observations.index.astype('int64'), round(self.at))}
 
         # Convert it to a Dataframe
         temps_freq_df = pd.DataFrame(frame)
 
         # Reorder the columns
-        temps_freq_df = temps_freq_df[['Temp_rounded(c)', 'Observations', 'Frequency(%)']]
+        temps_freq_df = temps_freq_df[['Temp_rounded(c)','Tair(c)','diff(c)','Observations', 'Frequency(%)']]
 
+        # Sort the dataframe based on Temp_rounced(c)
+        temps_freq_df = temps_freq_df.sort_values(by=['Temp_rounded(c)'])
+        
         # Export to csv
         temps_freq_df.to_csv(os.path.join(directory, 'canopy_empirical.csv'), header=True, index=False)
 
