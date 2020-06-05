@@ -42,6 +42,7 @@ class FlirImageExtractor:
         
         # valid for PNG thermal images
         self.use_thumbnail = False
+        
         self.fix_endian = True
 
         self.rgb_image_np = None
@@ -74,6 +75,7 @@ class FlirImageExtractor:
 
         if self.get_image_type().upper().strip() == "TIFF":
             # valid for tiff images from Zenmuse XTR
+            print("DEBUG TIFF image!")
             self.use_thumbnail = True
             self.fix_endian = False
 
@@ -269,11 +271,11 @@ class FlirImageExtractor:
 
         fn_prefix, _ = os.path.splitext(self.flir_img_filename)
         
-        thermal_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('\\')[3] + self.thermal_suffix)
-        image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('\\')[3] + self.image_suffix)
+        thermal_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('\\')[6] + self.thermal_suffix)
+        image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('\\')[6] + self.image_suffix)
         
         if self.use_thumbnail:
-            image_filename = fn_prefix + self.thumbnail_suffix
+            image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('\\')[6] + self.thumbnail_suffix)
 
         if self.is_debug:
             print("DEBUG Saving RGB image to:{}".format(image_filename))
@@ -336,6 +338,15 @@ class FlirImageExtractor:
         starty = y // 2 - (cropy // 2)
         return img[starty:starty + cropy, startx:startx + cropx]
 
+    def crop_n_save(self):
+        # crop the rgb image
+        cropped_img = self.crop_center(self.rgb_image_np, 504, 280)
+        fn_prefix, _ = os.path.splitext(self.flir_img_filename)
+        print("FN_PREFIX: ",fn_prefix)
+        cropped_img_filename = os.path.join('RGB_images/' + fn_prefix.split('\\')[1].replace('Portable_Fresno_','') + ".jpg")
+        cropped_img_visual = Image.fromarray(cropped_img)
+        cropped_img_visual.save(cropped_img_filename)
+
     def image_downscale(self):
         """
         Downscale the rgb image to 60x80 resolution
@@ -345,7 +356,7 @@ class FlirImageExtractor:
         """
 
         # crop the rgb image
-        cropped_img = self.crop_center(self.rgb_image_np, 494, 335)
+        cropped_img = self.crop_center(self.rgb_image_np, 504, 280)
 
         width = 80
         height = 60
@@ -355,8 +366,9 @@ class FlirImageExtractor:
         resized = cv.resize(cropped_img, dim, interpolation=cv.INTER_AREA)
 
         fn_prefix, _ = os.path.splitext(self.flir_img_filename)
-        downscaled_image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('\\')[3] + self.downscaled_image_suffix)
-        cropped_image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('\\')[3] + self.cropped_image_suffix)
+        print("fn_prefix: ",fn_prefix)
+        downscaled_image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('\\')[6] + self.downscaled_image_suffix)
+        cropped_image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('\\')[6] + self.cropped_image_suffix)
 
         downscaled_img_visual = Image.fromarray(resized)
         self.downscaled_rgb_image_np = np.array(downscaled_img_visual)
@@ -466,30 +478,32 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     if args.debug:
-        print("DEBUG Recommended Python version: > 3.5")
+        print("DEBUG Recommended Python version: 2.7")
         print("DEBUG Your system's Python version: "+str(sys.version_info[0])+"."+str(sys.version_info[1]))
 
     fie = FlirImageExtractor(exiftool_path=args.exiftool, is_debug=args.debug)
-    fie.parse_weather_data()
+    # fie.parse_weather_data()
     
     if args.actions:
-        image_path_list = glob.glob("images/*-*-*/Camera_*/*.jpg")
+        # image_path_list = glob.glob("images/*-*-*/Camera_*/*.jpg")
+        image_path_list = glob.glob("images/*.jpg")
         
         for image_path in image_path_list:
-            fie.check_if_metadata_present(image_path)
+            # fie.check_if_metadata_present(image_path)
             fie.process_image(image_path)
-            fie.create_subfolder()
-            fie.image_downscale()
-            fie.export_data_to_csv()
-            fie.save_images()
+            # fie.create_subfolder()
+            # fie.image_downscale()
+            # fie.export_data_to_csv()
+            fie.crop_n_save()
+            # fie.save_images()
             if args.debug:
                 print ("-------------------------------------------------------")
         
         print("Total number of images: ",len(image_path_list))
-        print("Total number of images with metadata present in the xlsx : ",fie.is_debug_number_of_images_with_metadata)
+        # print("Total number of images with metadata present in the xlsx : ",fie.is_debug_number_of_images_with_metadata)
         
     else:
-        fie.check_if_metadata_present(args.input)
+        #fie.check_if_metadata_present(args.input)
         fie.process_image(args.input)
         fie.create_subfolder()
         if args.plot:
