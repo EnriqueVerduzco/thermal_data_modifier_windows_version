@@ -39,6 +39,7 @@ class FlirImageExtractor:
         self.cropped_image_suffix = "_rgb_image_cropped.jpg"
         self.thermal_suffix = "_thermal.png"
         self.csv_suffix = "_thermal_values.csv"
+        self.metadata_csv_suffix= "_metadata.csv"
         
         # valid for PNG thermal images
         self.use_thumbnail = False
@@ -47,7 +48,11 @@ class FlirImageExtractor:
 
         self.rgb_image_np = None
         self.downscaled_rgb_image_np = None
+        self.cropped_visual_np = None
         self.thermal_image_np = None
+
+        self.metadata = None
+
         self.weather_df = None
         self.emissivity = 0.98
         self.rt = 30.00
@@ -135,6 +140,8 @@ class FlirImageExtractor:
              '-ReflectedApparentTemperature', '-IRWindowTemperature', '-IRWindowTransmission', '-RelativeHumidity',
              '-PlanckR1', '-PlanckB', '-PlanckF', '-PlanckO', '-PlanckR2', '-j'], shell=True)
         meta = json.loads(meta_json.decode())[0]
+        self.metadata = meta
+        print(self.metadata)
         
         # exifread can't extract the embedded thermal image, use exiftool instead
         thermal_img_bytes = subprocess.check_output([self.exiftool_path, "-RawThermalImage", "-b", self.flir_img_filename], shell=True)
@@ -265,24 +272,34 @@ class FlirImageExtractor:
         rgb_np = self.get_rgb_np()
         thermal_np = self.extract_thermal_image()
 
+        # Generate Images out of numpy arrays
         img_visual = Image.fromarray(rgb_np)
         thermal_normalized = (thermal_np - np.amin(thermal_np)) / (np.amax(thermal_np) - np.amin(thermal_np))
         img_thermal = Image.fromarray(np.uint8(cm.inferno(thermal_normalized) * 255))
+        cropped_img_visual = Image.fromarray(self.cropped_visual_np)
+        downscaled_img_visual = Image.fromarray(self.downscaled_rgb_image_np)
 
         fn_prefix, _ = os.path.splitext(self.flir_img_filename)
         
-        thermal_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('\\')[6] + self.thermal_suffix)
-        image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('\\')[6] + self.image_suffix)
-        
+        # Generate the paths for the images
+        thermal_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('/')[1] + self.thermal_suffix)
+        image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('/')[1] + self.image_suffix)
+        cropped_image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('/')[1] + self.cropped_image_suffix)
+        downscaled_image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('/')[1] + self.downscaled_image_suffix)
+
         if self.use_thumbnail:
             image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('\\')[6] + self.thumbnail_suffix)
 
         if self.is_debug:
             print("DEBUG Saving RGB image to:{}".format(image_filename))
             print("DEBUG Saving Thermal image to:{}".format(thermal_filename))
+            print("DEBUG Saving RGB cropped image image to:{}".format(cropped_image_filename))
+            print("DEBUG Saving RGB downscaled image to:{}".format(downscaled_image_filename))
 
         img_visual.save(image_filename)
         img_thermal.save(thermal_filename)
+        downscaled_img_visual.save(downscaled_image_filename)
+        cropped_img_visual.save(cropped_image_filename)
 
     def export_data_to_csv(self):
         """
@@ -292,7 +309,7 @@ class FlirImageExtractor:
         """
         
         fn_prefix, _ = os.path.splitext(self.flir_img_filename)
-        path = os.path.join(fn_prefix + '/' + fn_prefix.split('\\')[3] + self.csv_suffix)
+        path = os.path.join(fn_prefix + '/' + fn_prefix.split('/')[1] + self.csv_suffix)
 
 
         # list of pixel coordinates and thermal values
@@ -326,7 +343,9 @@ class FlirImageExtractor:
             writer = csv.writer(fh, delimiter=',')
             writer.writerow(['x', 'y', 'Temp(c)', 'R', 'G', 'B'])
             writer.writerows(formatted_flat_list)
-            
+        
+        if self.is_debug:
+            print("DEBUG Saving temperature and RGB data to:{}".format(path))
 
     def crop_center(self, img, cropx, cropy):
         """
@@ -338,14 +357,9 @@ class FlirImageExtractor:
         starty = y // 2 - (cropy // 2)
         return img[starty:starty + cropy, startx:startx + cropx]
 
-    def crop_n_save(self):
-        # crop the rgb image
-        cropped_img = self.crop_center(self.rgb_image_np, 504, 280)
-        fn_prefix, _ = os.path.splitext(self.flir_img_filename)
-        print("FN_PREFIX: ",fn_prefix)
-        cropped_img_filename = os.path.join('RGB_images/' + fn_prefix.split('\\')[1].replace('Portable_Fresno_','') + ".jpg")
-        cropped_img_visual = Image.fromarray(cropped_img)
-        cropped_img_visual.save(cropped_img_filename)
+    def crop_rgb_image(self):
+
+        self.cropped_visual_np = self.crop_center(self.rgb_image_np, 504, 342)
 
     def image_downscale(self):
         """
@@ -355,37 +369,18 @@ class FlirImageExtractor:
         :return:
         """
 
-        # crop the rgb image
-        cropped_img = self.crop_center(self.rgb_image_np, 504, 280)
-
         width = 80
         height = 60
         dim = (width, height)
 
         # resize the rgb image
-        resized = cv.resize(cropped_img, dim, interpolation=cv.INTER_AREA)
+        resized = cv.resize(self.cropped_visual_np, dim, interpolation=cv.INTER_AREA)
 
         fn_prefix, _ = os.path.splitext(self.flir_img_filename)
-        print("fn_prefix: ",fn_prefix)
-        downscaled_image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('\\')[6] + self.downscaled_image_suffix)
-        cropped_image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('\\')[6] + self.cropped_image_suffix)
-
+    
         downscaled_img_visual = Image.fromarray(resized)
         self.downscaled_rgb_image_np = np.array(downscaled_img_visual)
         
-        cropped_img_visual = Image.fromarray(cropped_img)
-        
-        downscaled_img_visual.save(downscaled_image_filename)
-        cropped_img_visual.save(cropped_image_filename)
-        
-        if self.is_debug:
-            #print('DEBUG Original Dimensions : ', self.rgb_image_np.shape)
-            #print('DEBUG Removed black surrounding box')
-            #print('DEBUG Cropped RGB image dimensions: ', cropped_img.shape)
-            #print('DEBUG Downscaled RGB image dimensions : ', resized.shape)
-            #print("DEBUG Saving downscaled RGB image to:{}".format(downscaled_image_filename))
-            print("DEBUG Saving cropped 494x335 RGB image to:{}".format(cropped_image_filename))
-
     def create_subfolder(self):
         """
         Create a subfolder inside the original image
@@ -445,6 +440,31 @@ class FlirImageExtractor:
             self.is_debug_number_of_images_with_metadata+=1
         else:
             print("Weather data not found for: ", file_name)
+    
+    def image_metadata_to_csv(self):
+
+        fn_prefix, _ = os.path.splitext(self.flir_img_filename)
+        path = os.path.join(fn_prefix + '/' + fn_prefix.split('/')[1] + self.metadata_csv_suffix)
+
+        csv_columns = ['Emissivity', 'SubjectDistance', 'AtmosphericTemperature',
+             'ReflectedApparentTemperature', 'IRWindowTemperature', 'IRWindowTransmission', 'RelativeHumidity',
+             'PlanckR1', 'PlanckB', 'PlanckF', 'PlanckO', 'PlanckR2']
+
+
+        if self.is_debug:
+            print("DEBUG Saving metadata information to:{}".format(path))
+        
+        try:
+            with open(path, 'wb') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=csv_columns, delimiter = ',')
+                writer.writeheader()
+                data = {key: value for key, value in self.metadata.iteritems()
+                if key in csv_columns}
+                writer.writerow(data)
+        except IOError:
+            print("I/O error")
+
+
 
 class SmartFormatter(argparse.HelpFormatter):
 
@@ -469,7 +489,8 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--plot', help='Generate a plot using matplotlib', required=False, action='store_true')
     parser.add_argument('-exif', '--exiftool', type=str, help='Custom path to exiftool', required=False,
                         default='exiftool')
-    parser.add_argument('-csv', '--extractcsv', help='Export the data per pixel encoded as csv file',
+    parser.add_argument('-csv', '--extractcsv', help='R|Export the data per pixel encoded as csv file.\n'
+                        'Also export the image metadata into a separate csv file.\n',
                         required=False, action='store_true')
     parser.add_argument('-s', '--scale', help='Downscale the original image to match the thermal image\'s dimensions',
                         required=False, action='store_true')
@@ -490,12 +511,13 @@ if __name__ == '__main__':
         
         for image_path in image_path_list:
             # fie.check_if_metadata_present(image_path)
-            fie.process_image(image_path)
-            # fie.create_subfolder()
-            # fie.image_downscale()
-            # fie.export_data_to_csv()
-            fie.crop_n_save()
-            # fie.save_images()
+            fie.process_image(image_path.replace("\\","/"))
+            fie.create_subfolder()
+            fie.crop_rgb_image()
+            fie.image_downscale()
+            fie.export_data_to_csv()
+            fie.image_metadata_to_csv()
+            fie.save_images()
             if args.debug:
                 print ("-------------------------------------------------------")
         
@@ -509,7 +531,9 @@ if __name__ == '__main__':
         if args.plot:
             fie.plot()
         if args.scale:
+            fie.crop_rgb_image()
             fie.image_downscale()
         if args.extractcsv:
+            fie.image_metadata_to_csv()
             fie.export_data_to_csv()
         fie.save_images()
