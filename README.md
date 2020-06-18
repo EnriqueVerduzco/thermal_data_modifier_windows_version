@@ -22,9 +22,13 @@ Exiftool (since no available anaconda packages, the executable is included in th
 
 This module can be used by calling it as a script:
 
+For all the files inside an "images" folder:
 ```bash
 python flir_image_extractor.py -act
-python flir_image_extractor.py -p -i "images\2019-08-28\Camera_1\img_20190828_121055_010.jpg" -s -csv
+```
+or for a single image:
+```bash
+python flir_image_extractor.py -p -i "images/img_20190828_121055_010.jpg" -s -csv -d
 ```
 
 ```bash
@@ -48,7 +52,8 @@ arguments:
   -exif EXIFTOOL, --exiftool EXIFTOOL
                         Custom path to exiftool
   -csv EXTRACTCSV, --extractcsv EXTRACTCSV
-                        Export the thermal data per pixel encoded as csv file
+                        Export the thermal data per pixel to a csv file
+			Also export the the image metadata to a csv file
   -s, --scale		Generate a downscaled rgb image to match the thermal image's dimensions
   -d, --debug           Set the debug flag
 ```
