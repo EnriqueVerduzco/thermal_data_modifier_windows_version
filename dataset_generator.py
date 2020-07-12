@@ -24,7 +24,7 @@ class Preprocessor:
         self.is_debug_number_of_images = 0
         self.flir_img_filename = ""
 
-        self.list_of_dirs = ['Dataset/train'] * 80 + ['Dataset/val'] * 15 + ['Dataset/test'] * 5
+        self.list_of_dirs = ['Dataset_crop/train'] * 80 + ['Dataset_crop/val'] * 15 + ['Dataset_crop/test'] * 5
 
         
         self.vpl = None
@@ -59,7 +59,7 @@ class Preprocessor:
         for label in self.label_image_names:
             
             if label not in self.visual_image_names:
-                    label_with_no_vs_image_path = glob.glob("Labels_640x480/*/"+label+"_L.png")
+                    label_with_no_vs_image_path = glob.glob("Labels/*/"+label+"_L.png")
                     label_with_no_vs_image_path_list.append(label_with_no_vs_image_path)
                     # print("{} exists in the labels folder, but not in the visual spectrum images".format(label))
                     visual_spectrum_missing_counter+=1
@@ -79,7 +79,7 @@ class Preprocessor:
         vs_images_with_no_label_path_list = []
         for vs_image in self.visual_image_names:
 
-            vs_img_path = glob.glob("Visual_Spectrum_images/*/"+vs_image+".jpg")
+            vs_img_path = glob.glob("Visual_Spectrum_images_cropped/*/"+vs_image+".jpg")
             
             if vs_image not in self.label_image_names:
                    
@@ -88,7 +88,7 @@ class Preprocessor:
                     label_missing_counter+=1
             else:
                 # Label for the image exists
-                label_path = glob.glob("Labels_640x480/*/"+vs_image+"_L.png")
+                label_path = glob.glob("Labels/*/"+vs_image+"_L.png")
                 dest = random.choice(self.list_of_dirs)
                 
                 print("Directory selected: ", dest)
@@ -151,20 +151,20 @@ if __name__ == '__main__':
     if not os.path.isdir('./Visual_Spectrum_images'):
         raise Exception('Folder with name "Visual_Spectrum_images" does not exist.')
 
-    if not os.path.isdir('./Labels_640x480'):
+    if not os.path.isdir('./Labels'):
         raise Exception('Folder with name "Labels" does not exist.')
 
     output_path = 'Dataset/train'
 
-    createDir('Dataset/train', args.debug)
-    createDir('Dataset/train_labels', args.debug)
-    createDir('Dataset/val', args.debug)
-    createDir('Dataset/val_labels', args.debug)
-    createDir('Dataset/test', args.debug)
-    createDir('Dataset/test_labels', args.debug)
+    createDir('Dataset_crop/train', args.debug)
+    createDir('Dataset_crop/train_labels', args.debug)
+    createDir('Dataset_crop/val', args.debug)
+    createDir('Dataset_crop/val_labels', args.debug)
+    createDir('Dataset_crop/test', args.debug)
+    createDir('Dataset_crop/test_labels', args.debug)
 
-    visual_path_list = glob.glob("Visual_Spectrum_images/*/*.jpg")
-    label_path_list = glob.glob("Labels_640x480/*/*.png")
+    visual_path_list = glob.glob("Visual_Spectrum_images_cropped/*/*.jpg")
+    label_path_list = glob.glob("Labels/*/*.png")
     
     pre.initImageLists(visual_path_list, label_path_list)
     if args.debug:
