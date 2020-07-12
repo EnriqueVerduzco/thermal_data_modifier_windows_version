@@ -15,6 +15,8 @@ from math import sqrt, exp, log
 
 import numpy as np
 
+import shutil
+
 
 class FlirImageExtractor:
 
@@ -80,25 +82,57 @@ class FlirImageExtractor:
         return img[starty:starty + cropy, startx:startx + cropx]
     
 
-    def save_images(self):
+    def save_images(self, path, crop, destination):
         """
         Save the extracted images
         :return:
         """
-        rgb_np = self.get_rgb_np()
+        visual_np = self.get_rgb_np()
 
-        cropped_img = self.crop_center(rgb_np, 504, 342)
+        if crop:
+            visual_np = self.crop_center(visual_np, 504, 342)
        
-        fn_prefix, _ = os.path.splitext(self.flir_img_filename)
+        parts = path.split("\\")
+        folder = parts[1]
+        name = parts[2]
 
-        cropped_img_filename = os.path.join('Visual_Spectrum_images/' + fn_prefix.split('\\')[1] + ".jpg")
-        cropped_img_visual = Image.fromarray(cropped_img)
+        destination_path = os.path.join(destination, folder, name)
+        img_visual = Image.fromarray(visual_np)
         
         if self.is_debug:
-            print("DEBUG Saving cropped RGB image to:{}".format(cropped_img_filename))
+            print("DEBUG Saving cropped RGB image to:{}".format(destination_path))
 
-        cropped_img_visual.save(cropped_img_filename)
+        img_visual.save(destination_path)
 
+
+
+def createDir(output_path, debug=True):
+    
+    list_of_dirs = [x[0] for x in os.walk("images/")]
+    list_of_dirs.pop(0)
+
+    for directory in list_of_dirs:
+        subdir = directory.split("/")[1]
+
+        if os.path.exists(output_path+"/"+subdir):
+            if debug:
+                print("Debug: {} already exists, deleting...".format(output_path+"/"+subdir))
+            shutil.rmtree(output_path+"/"+subdir)
+        
+        if debug:
+                print("Debug: Creating {}".format(output_path+"/"+subdir))
+        os.makedirs(output_path+"/"+subdir)
+
+
+def str2bool(v):
+    if isinstance(v, bool):
+       return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 class SmartFormatter(argparse.HelpFormatter):
 
@@ -120,6 +154,7 @@ if __name__ == '__main__':
                         default='exiftool')
     parser.add_argument('-d', '--debug', help='Set the debug flag', required=False,
                         action='store_true')
+    parser.add_argument("--crop", type=str2bool, nargs='?', const=True, default=False, help="Crop the visual spectrum images.")
     args = parser.parse_args()
 
     fie = FlirImageExtractor(exiftool_path=args.exiftool, is_debug=args.debug)
@@ -127,22 +162,19 @@ if __name__ == '__main__':
     if not os.path.isdir('./images'):
         raise Exception('Folder with name "images" does not exist.')
 
-    output_path = 'Visual_Spectrum_images'
-
-    try:
-        os.mkdir(output_path)
-    except OSError:
-        if args.debug:
-            print("DEBUG Creation of the directory %s failed" % output_path)
+    
+    if args.crop:
+        output_path = 'Visual_Spectrum_images_cropped'
     else:
-        if args.debug:
-            print("DEBUG Successfully created the directory %s " % output_path)
+        output_path = 'Visual_Spectrum_images'
 
-    image_path_list = glob.glob("images/*.jpg")
+    createDir(output_path, args.debug)
+
+    image_path_list = glob.glob("images/*/*.jpg")
     
     for image_path in image_path_list:
         fie.process_image(image_path)
-        fie.save_images()
+        fie.save_images(image_path, args.crop, output_path)
         if args.debug:
             print ("-------------------------------------------------------")
     

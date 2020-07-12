@@ -125,4 +125,8 @@ dmypy.json
 .pyre/
 
 images/*
-
+Visual_Spectrum_images/*
+Visual_Spectrum_images_cropped/*
+Labels_640x480/*
+Labels/*
+Dataset/*

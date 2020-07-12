@@ -282,10 +282,10 @@ class FlirImageExtractor:
         fn_prefix, _ = os.path.splitext(self.flir_img_filename)
         
         # Generate the paths for the images
-        thermal_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('/')[1] + self.thermal_suffix)
-        image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('/')[1] + self.image_suffix)
-        cropped_image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('/')[1] + self.cropped_image_suffix)
-        downscaled_image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('/')[1] + self.downscaled_image_suffix)
+        thermal_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('/')[2] + self.thermal_suffix)
+        image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('/')[2] + self.image_suffix)
+        cropped_image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('/')[2] + self.cropped_image_suffix)
+        downscaled_image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('/')[2] + self.downscaled_image_suffix)
 
         if self.use_thumbnail:
             image_filename = os.path.join(fn_prefix + '/' + fn_prefix.split('\\')[6] + self.thumbnail_suffix)
@@ -309,7 +309,7 @@ class FlirImageExtractor:
         """
         
         fn_prefix, _ = os.path.splitext(self.flir_img_filename)
-        path = os.path.join(fn_prefix + '/' + fn_prefix.split('/')[1] + self.csv_suffix)
+        path = os.path.join(fn_prefix + '/' + fn_prefix.split('/')[2] + self.csv_suffix)
 
 
         # list of pixel coordinates and thermal values
