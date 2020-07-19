@@ -91,10 +91,10 @@ if __name__ == '__main__':
         elif args.extension == 'png':
             new_image = new_image.save("test.png")
         else:
-            ("Debug: You didn't specify an extension for the file to be saved. Aborting save...")
+            print("Debug: You didn't specify an extension for the file to be saved. Aborting save...")
     
     else:
-        createDir('Labels_640x480', debug=True)
+        createDir('Labels_640x480', debug=args.debug)
         labels = glob.glob("Labels/*/*_L.png")
     
         for label in labels:

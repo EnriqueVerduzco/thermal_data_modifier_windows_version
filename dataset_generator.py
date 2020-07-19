@@ -91,8 +91,8 @@ class Preprocessor:
                 label_path = glob.glob("Labels/*/"+vs_image+"_L.png")
                 dest = random.choice(self.list_of_dirs)
                 
-                print("Directory selected: ", dest)
-                print("Copying {}, {} \n".format(vs_img_path[0].replace("\\","/"), label_path[0].replace("\\","/")))
+                # print("Directory selected: ", dest)
+                # print("Copying {}, {} \n".format(vs_img_path[0].replace("\\","/"), label_path[0].replace("\\","/")))
                 shutil.copy2(vs_img_path[0].replace("\\","/"), dest)
                 shutil.copy2(label_path[0].replace("\\","/"), dest+'_labels')
         
