@@ -79,6 +79,8 @@ It also provides an output.csv file with useful metrics regarding the given imag
 
 To generate the mask.txt file, open the cropped image in the pynovisao software, run a segmentor and click on the areas of interest.
 
+"python thermal_data_modifiy.py -act" will run the script for all items in the folder labeled "images"
+
 This module can be used by calling it as a script:
 
 ```bash
